@@ -1,0 +1,111 @@
+﻿@page "/admindashboard"
+@using MudBlazor
+@inject NavigationManager NavigationManager
+
+<div class="dashboard-root" style="padding:24px;">
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:18px;">
+    <h2 style="margin:0;">Bookings</h2>
+
+    <div style="display:flex; align-items:center; gap:12px;">
+      <MudTextField @bind-Value="searchText" Placeholder="Search..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" OnImmediate="ApplyFilter" Variant="Variant.Outlined" />
+      <MudIconButton Icon="@Icons.Material.Filled.NotificationsNone" Color="Color.Default" />
+      <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="@Logout">Logout</MudButton>
+    </div>
+  </div>
+
+  <!-- Summary cards -->
+  <MudGrid GutterSize="3">
+    <MudItem xs="12" md="4">
+      <MudCard Style="padding:18px; border-radius:12px;">
+        <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Total Bookings</MudText>
+        <MudText Typo="Typo.h4">@TotalBookings</MudText>
+      </MudCard>
+    </MudItem>
+
+    <MudItem xs="12" md="4">
+      <MudCard Style="padding:18px; border-radius:12px;">
+        <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Unique Clients</MudText>
+        <MudText Typo="Typo.h4">@UniqueClients</MudText>
+      </MudCard>
+    </MudItem>
+
+    <MudItem xs="12" md="4">
+      <MudCard Style="padding:18px; border-radius:12px;">
+        <MudText Typo="Typo.subtitle2" Color="Color.Secondary">Today's Slots</MudText>
+        <MudText Typo="Typo.h4">@TodaysSlots</MudText>
+      </MudCard>
+    </MudItem>
+  </MudGrid>
+
+  <!-- Table header spacing -->
+  <div style="height:18px;"></div>
+
+  <!-- Bookings table -->
+  <MudPaper Style="padding:12px; border-radius:12px;">
+    <MudTable Items="filtered" Hover="true" Elevation="0">
+      <HeaderContent>
+        <MudTh>Client</MudTh>
+        <MudTh>Service</MudTh>
+        <MudTh style="width:220px;">Date &amp; Time</MudTh>
+        <MudTh>Status</MudTh>
+      </HeaderContent>
+      <RowTemplate>
+        <MudTd DataLabel="Client">@context.ClientName</MudTd>
+        <MudTd DataLabel="Service">@context.ServiceName</MudTd>
+        <MudTd DataLabel="Date & Time">@context.Date.ToString("f")</MudTd>
+        <MudTd DataLabel="Status">
+          <MudChip T="string" Color="@(context.Status == "Confirmed" ? Color.Success : Color.Default)" Variant="Variant.Outlined">@context.Status</MudChip>
+        </MudTd>
+      </RowTemplate>
+      <NoRecordsContent>
+        <div style="padding:18px; text-align:center;">No bookings found</div>
+      </NoRecordsContent>
+    </MudTable>
+  </MudPaper>
+</div>
+
+@code {
+  private string searchText = string.Empty;
+
+  // Replace this with a service injection to load real data:
+  private List<BookingRow> bookings = new();
+  private IEnumerable<BookingRow> filtered => bookings.Where(Filter);
+
+  protected override void OnInitialized()
+  {
+    // Sample data — swap for real repository/service call
+    bookings = new List<BookingRow>
+    {
+      new BookingRow("Alice Johnson","Haircut", DateTime.Today.AddHours(10), "Confirmed"),
+      new BookingRow("Bob Smith","Manicure", DateTime.Today.AddHours(14), "Pending"),
+      new BookingRow("Claire Lee","Massage", DateTime.Today.AddDays(1).AddHours(9), "Confirmed"),
+    };
+  }
+
+  private bool Filter(BookingRow b)
+  {
+    if (string.IsNullOrWhiteSpace(searchText)) return true;
+    var s = searchText.Trim().ToLowerInvariant();
+    return (b.ClientName?.ToLowerInvariant().Contains(s) ?? false)
+        || (b.ServiceName?.ToLowerInvariant().Contains(s) ?? false)
+        || b.Date.ToString("f").ToLowerInvariant().Contains(s)
+        || (b.Status?.ToLowerInvariant().Contains(s) ?? false);
+  }
+
+  private void ApplyFilter()
+  {
+    StateHasChanged();
+  }
+
+  private void Logout()
+  {
+    // Wire to real logout/navigation logic
+    NavigationManager.NavigateTo("/", true);
+  }
+
+  private int TotalBookings => bookings.Count;
+  private int UniqueClients => bookings.Select(x => x.ClientName).Distinct(StringComparer.OrdinalIgnoreCase).Count();
+  private int TodaysSlots => bookings.Count(b => b.Date.Date == DateTime.Today);
+
+  private record BookingRow(string ClientName, string ServiceName, DateTime Date, string Status);
+}

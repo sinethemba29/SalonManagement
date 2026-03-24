@@ -1,0 +1,157 @@
+﻿@page "/"
+@rendermode InteractiveServer
+@using MudBlazor
+@inject NavigationManager NavigationManager
+@inject SalonManagement.Application.Interfaces.IUserService UserService
+
+<div class="center-container" style="--card-width:360px; --card-height:500px;">
+  <div class="card-wrapper" style="width:var(--card-width);">
+    <MudCard Class="home-card" Elevation="3" Outlined="true">
+      <MudCardContent class="home-card-content">
+        <div class="brand-inline">
+          <MudAvatar Class="brand-avatar-inline" Rounded="true">
+            <MudImage Src="images/logo.png" Alt="Logo" />
+          </MudAvatar>
+
+          <div class="brand-text">
+            <div class="brand-title">Salon Management</div>
+            <div class="brand-subtitle">Premium Maintenance</div>
+          </div>
+        </div>
+
+        <MudForm @ref="mudForm" Typo="Typo.body2" Class="mt-2 auth-form">
+          <div class="form-field">
+            <label class="field-label">Username *</label>
+            <MudTextField T="string"
+                          @bind-Value="credentials.Username"
+                          Placeholder="Enter your username"
+                          Variant="Variant.Outlined"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Person"
+                          Class="styled-textfield"
+                          Required RequiredError="Username is required" />
+          </div>
+
+          <div class="form-field">
+            <label class="field-label">Password *</label>
+            <MudTextField T="string"
+                          @bind-Value="credentials.Password"
+                          Placeholder="Enter your password"
+                          Variant="Variant.Outlined"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Lock"
+                          InputType="InputType.Password"
+                          Class="styled-textfield"
+                          Required RequiredError="Password is required" />
+          </div>
+                    <MudButton Variant="Variant.Text"
+                               Color="Color.Primary"
+                               Style="background-color:darkgrey;border-radius:10px;color:black;"
+                               OnClick="Submit"
+                               Disabled="@isSubmitting">
+                        Submit
+                    </MudButton>
+                    <div class="signup-row"
+                         style="margin-top:12px; display:flex; align-items:baseline; gap:8px; line-height:1;">
+                        <MudText Style="margin:0; line-height:1;">Don't have an account?</MudText>
+                        <MudButton Variant="Variant.Text"
+                                   Color="Color.Primary"
+                                   OnClick="GoToSignup"
+                                   Class="signup-button"
+                                   Style="padding:0; min-width:0; height:auto; line-height:1;margin-right:46px;">
+                            Sign up
+                        </MudButton>
+                    </div>
+                </MudForm>
+      </MudCardContent>
+
+      <MudCardActions>
+
+      </MudCardActions>
+    </MudCard>
+  </div>
+</div>
+
+@code {
+    private MudForm mudForm = default!;
+    private Credentials credentials = new();
+    private bool isSubmitting = false;
+    private bool isAdmin = false;
+    private string? loginError;
+
+    private async Task Submit()
+    {
+        if (isSubmitting) return;
+
+        isSubmitting = true;
+        loginError = null;
+
+        try
+        {
+            // 2. Ensure form is ready and validate
+            if (mudForm != null)
+            {
+                await mudForm.Validate();
+
+                if (mudForm.IsValid)
+                {
+                    // 3. Perform the sign-in
+                    var success = await SignInAsync(credentials);
+
+
+
+                    if (success)  // FIX 1 & 2: Use the injected 'UserSession' instance and the 'authenticatedUser' variable
+
+                        if (isAdmin)
+                        {
+                            NavigationManager.NavigateTo("admindashboard");
+                        }
+                        else
+                        {
+                            NavigationManager.NavigateTo("userdashboard");
+
+                        }
+                    }
+                    else
+                    {
+                        loginError = "Invalid username or password.";
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            loginError = "An unexpected error occurred.";
+            Console.WriteLine(ex.Message);
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+    private Task GoToSignup()
+    {
+        // navigate to the signup page (assumes Signup.razor is routed to "/signup")
+        NavigationManager.NavigateTo("signup");
+        return Task.CompletedTask;
+    }
+    private async Task<bool> SignInAsync(Credentials creds)
+    {
+        // call the application-facing service (IUserService)
+        var user = await UserService.AuthenticateAsync(creds.Username, creds.Password);
+
+        if (user != null)
+        {
+            isAdmin = user.IsAdmin; // set admin flag
+            return true;             // return true if authentication succeeded
+        }
+
+        return false; // return false if user is null
+    }
+
+    private class Credentials
+    {
+        public string Username { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+}

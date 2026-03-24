@@ -1,0 +1,142 @@
+﻿@page "/signup"
+@rendermode InteractiveServer
+@using MudBlazor
+@inject NavigationManager NavigationManager
+@inject SalonManagement.Application.Interfaces.IUserService UserService
+
+<div class="center-container" style="--card-width:360px; --card-height:500px;">
+    <div class="card-wrapper" style="width:var(--card-width);">
+        <MudCard Class="home-card" Elevation="3" Outlined="true">
+            <MudCardContent class="home-card-content">
+                <div class="brand-inline">
+                    <MudAvatar Class="brand-avatar-inline" Rounded="true">
+                        <MudImage Src="images/logo.png" Alt="Logo" />
+                    </MudAvatar>
+
+                    <div class="brand-text">
+                        <div class="brand-title">Salon Management</div>
+                        <div class="brand-subtitle">Premium Maintenance</div>
+                    </div>
+                </div>
+
+                <MudForm @ref="mudForm" Typo="Typo.body2" Class="mt-2 auth-form">
+                    <div class="form-field">
+                        <label class="field-label">Name *</label>
+                        <MudTextField T="string"
+                                      @bind-Value="credentials.Name"
+                                      Placeholder="Enter your name"
+                                      Variant="Variant.Outlined"
+                                      Adornment="Adornment.Start"
+                                      Class="styled-textfield"
+                                      Required RequiredError="Name is required" />
+                    </div>
+
+                    <div class="form-field">
+                        <label class="field-label">Username *</label>
+                        <MudTextField T="string"
+                                      @bind-Value="credentials.Username"
+                                      Placeholder="Enter your username"
+                                      Variant="Variant.Outlined"
+                                      Adornment="Adornment.Start"
+                                      Class="styled-textfield"
+                                      Required RequiredError="Username is required" />
+                    </div>
+
+                    <div class="form-field">
+                        <label class="field-label">Password *</label>
+                        <MudTextField T="string"
+                                      @bind-Value="credentials.Password"
+                                      Placeholder="Enter your password"
+                                      Variant="Variant.Outlined"
+                                      Adornment="Adornment.Start"
+                                      InputType="InputType.Password"
+                                      Class="styled-textfield"
+                                      Required RequiredError="Password is required" />
+                    </div>
+                    <MudButton Variant="Variant.Text"
+                               Color="Color.Primary"
+                               Style="background-color:darkgrey;border-radius:10px;color:black;"
+                               OnClick="Save"
+                               Disabled="@isSubmitting">
+                        Submit
+                    </MudButton>
+                </MudForm>
+            </MudCardContent>
+
+            <MudCardActions>
+
+            </MudCardActions>
+        </MudCard>
+    </div>
+</div>
+
+@code {
+    private MudForm mudForm = default!;
+    private Credentials credentials = new();
+    private bool isSubmitting = false;
+    private string? loginError;
+    [Inject] ISnackbar snackbar { get; set; }
+    private async Task Save()
+    {
+        Console.WriteLine("Save clicked");
+        // 1. Prevent multiple clicks
+        if (isSubmitting) return;
+
+        isSubmitting = true;
+        loginError = null;
+
+        try
+        {
+            // 2. Ensure form is ready and validate
+            if (mudForm != null)
+            {
+                await mudForm.Validate();
+
+                if (mudForm.IsValid)
+                {
+                    // 3. Perform the sign-in
+                    var success = await AddUser(credentials);
+
+                    if (success)
+                    {
+                        // 4. Navigate - Ensure "/counter" exists in your Pages folder!
+                        snackbar.Add("Signup successful! Redirecting to login...", Severity.Success);
+                        NavigationManager.NavigateTo("/");
+                    }
+                    else
+                    {
+                        loginError = "Invalid username or password.";
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            loginError = "An unexpected error occurred.";
+            Console.WriteLine(ex.Message);
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+    private Task GoToSignup()
+    {
+        // navigate to the signup page (assumes Signup.razor is routed to "/signup")
+        NavigationManager.NavigateTo("signup");
+        return Task.CompletedTask;
+    }
+
+    private async Task<bool> AddUser(Credentials creds)
+    {
+        // call the application-facing service (IUserService)
+        var user = await UserService.AddNewUser(creds.Name, creds.Username, creds.Password);
+        return user != null;
+    }
+    private class Credentials
+    {
+        public string Name { get; set; } = string.Empty;
+        public string Username { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+}

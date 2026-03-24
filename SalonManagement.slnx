@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="SalonManagement.Application/SalonManagement.Application.csproj" />
+  <Project Path="SalonManagement.Domain/SalonManagement.Domain.csproj" />
+  <Project Path="SalonManagement.Infrastructure/SalonManagement.Infrastructure.csproj" />
+  <Project Path="SalonManagement.Web/SalonManagement.Web.csproj" />
+</Solution>

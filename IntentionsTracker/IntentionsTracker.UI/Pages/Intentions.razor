@@ -1,0 +1,72 @@
+﻿@page "/intentions"
+@using MudBlazor
+@using IntentionsTracker.Domain
+@inject ISnackbar Snackbar
+@inject IntentionsTracker.Infrastructure.Persistance.IntentionsRepository IntentionsRepo
+
+<PageTitle>Intentions</PageTitle>
+
+<h3 style="margin-left:400px;font-family:'Times New Roman', Times, serif">My daily Intentions</h3>
+<h5 style="margin-left:400px;font-family:'Italic Outline Art'">'Progress, not perfection.'</h5>
+
+<MudCard Outlined="true" Style="margin-left:100px;">
+    <MudCardHeader>
+        <MudText>Today's entry'</MudText>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudText Typo="Typo.body2">_date</MudText>
+        <MudTextField @bind-Value="intention.Title" Label="Title" Variant="Variant.Text"></MudTextField>
+        <MudTextField @bind-Value="intention.Description" Label="Description" Variant="Variant.Text" Lines="3"></MudTextField>
+    </MudCardContent>
+    <MudCardActions>
+        <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="SaveEntry">Save entry</MudButton>
+    </MudCardActions>
+</MudCard>
+
+<h6 style="margin-left:100px;font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif">Past Entries</h6>
+
+<MudCard Outlined="true" Style="margin-left:100px;">
+    <MudCardContent>
+        <MudText>Intention of the day</MudText>
+        <MudText Typo="Typo.body2">The quick, brown fox jumps over a lazy dog.</MudText>
+    </MudCardContent>
+</MudCard>
+
+@code {
+    public string TextValue { get; set; }
+    private DateTime? _date = DateTime.Today;
+    public IntentionsTracker.Domain.Intentions intention = new Domain.Intentions();
+    protected override void OnInitialized()
+    {
+        // Initialize any necessary data here
+        _date = DateTime.Today;
+        TextValue = string.Empty;
+    }
+    private void OnDateChanged(DateTime? date)
+    {
+        _date = date;
+        Console.WriteLine($"Date changed to: {_date}");
+    }
+    private async Task SaveEntry()
+    {
+        var entry = new IntentionsTracker.Domain.Intentions
+        {
+            Title = intention.Title,
+            DateCreated = _date ?? DateTime.Today,
+            Description = intention.Description
+        };
+        //var json = System.Text.Json.JsonSerializer.Serialize(entry);
+        var savedEntry = await IntentionsRepo.AddAsync(entry);
+        if(savedEntry != null)
+        {
+            Snackbar.Add("Entry saved successfully!", Severity.Success);
+            StateHasChanged();
+        }
+        else
+        {
+            Snackbar.Add("Failed to save entry.", Severity.Error);
+            StateHasChanged();
+        }
+        await Task.CompletedTask; // Simulate async operation
+    }
+}

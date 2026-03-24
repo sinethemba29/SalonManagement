@@ -1,0 +1,34 @@
+@page "/intentions"
+@using MudBlazor
+@inject HttpClient Http
+
+<h3>Intentions</h3>
+
+@if (intentions == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <ul>
+        @foreach (var intention in intentions)
+        {
+            <li>@intention.Title</li>
+        }
+    </ul>
+}
+
+@code {
+    private List<Intention>? intentions;
+
+    protected override async Task OnInitializedAsync()
+    {
+        intentions = await Http.GetFromJsonAsync<List<Intention>>("https://localhost:5001/api/intentions");
+    }
+
+    public class Intention
+    {
+        public int Id { get; set; }
+        public string Title { get; set; }
+    }
+}
