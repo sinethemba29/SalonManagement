@@ -1,8 +1,11 @@
-﻿namespace SalonManagement.Web.Services
+﻿using SalonManagement.Application.Dtos;
+
+namespace SalonManagement.Web.Services
 {
     public class UserSession
     {
-        public string Username { get; set; } = string.Empty;
-        public bool IsAdmin { get; set; }
+        public UserDto? CurrentUser { get; set; }
+
+        public bool IsLoggedIn => CurrentUser != null;
     }
 }

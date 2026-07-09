@@ -61,6 +61,10 @@ namespace SalonManagement.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -73,11 +77,13 @@ namespace SalonManagement.Infrastructure.Migrations
                         new
                         {
                             Id = 1,
+                            Description = "",
                             Name = "Ladies"
                         },
                         new
                         {
                             Id = 2,
+                            Description = "",
                             Name = "Gentlemen"
                         });
                 });

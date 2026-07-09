@@ -1,0 +1,202 @@
+﻿@page "/gents"
+@using MudBlazor
+@inject NavigationManager NavigationManager
+<style>
+    /* Scoped styles for Categories.razor */
+
+    .categories-root {
+        padding: 24px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 6px;
+    }
+
+    .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .brand-avatar {
+        background-color: #5a5f3f !important;
+        color: white !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+    }
+
+    .brand-title {
+        font-family: "Georgia", serif;
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .header-sub {
+        color: rgba(0,0,0,0.6);
+        margin-bottom: 12px;
+    }
+
+    /* Grid of large cards */
+    .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 22px;
+    }
+
+    /* Individual category card */
+    .category-card {
+        position: relative;
+        height: 260px;
+        border-radius: 18px;
+        overflow: hidden;
+        cursor: pointer;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+        transition: transform 220ms ease, box-shadow 220ms ease;
+        background: #000;
+        display: block;
+    }
+
+        .category-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transform-origin: center;
+            transition: transform 400ms ease;
+        }
+
+    /* overlay centered text */
+    .overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        color: #fff;
+        text-align: center;
+        padding: 22px;
+        background: linear-gradient(to bottom, rgba(0,0,0,0.25), rgba(0,0,0,0.45));
+    }
+
+    .overlay-title {
+        font-family: "Georgia", serif;
+        font-size: 2.6rem;
+        font-weight: 600;
+        text-shadow: 0 4px 12px rgba(0,0,0,0.45);
+        line-height: 1;
+        margin-bottom: 6px;
+    }
+
+    .overlay-sub {
+        font-size: 0.95rem;
+        opacity: 0.95;
+    }
+
+    /* hover/focus effects */
+    .category-card:hover,
+    .category-card:focus {
+        transform: translateY(-6px);
+        box-shadow: 0 12px 28px rgba(0,0,0,0.18);
+    }
+
+        .category-card:hover img,
+        .category-card:focus img {
+            transform: scale(1.04);
+        }
+
+    /* responsive */
+    media (max-width: 900px) {
+        .cards-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .overlay-title {
+            font-size: 2rem;
+        }
+
+        .category-card {
+            height: 200px;
+        }
+    }
+</style>
+<div class="categories-root">
+    <div class="page-header">
+        <div class="brand">
+            <MudButton OnClick="@Back">
+                Back
+            </MudButton>
+            <div class="brand-title">Select service</div>
+        </div>
+
+        <div class="header-actions">
+            <MudText Typo="Typo.subtitle2">user</MudText>
+            <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="@Logout">Logout</MudButton>
+        </div>
+    </div>
+
+    <MudText Typo="Typo.body1" Align="Align.Center" Class="header-sub">Select a category to see available services</MudText>
+
+    <div class="cards-grid" role="list">
+        @foreach (var cat in categories)
+        {
+            <MudPaper Style="">
+                <MudText>
+                    @cat.Name
+                </MudText>
+            </MudPaper>
+        }
+    </div>
+</div>
+
+@code {
+    // Replace with an injected service (e.g. ICategoryService) to load real data.
+    private List<CategoryItem> categories = new();
+
+    public class UserSession
+    {
+        public string Username { get; set; } = string.Empty;
+        public bool IsAdmin { get; set; }
+        // You can add more properties from your UserDto here
+    }
+    protected override void OnInitialized()
+    {
+        // sample images from unsplash — replace with your own /wwwroot images if desired
+        categories = new List<CategoryItem>
+    {
+      new(1, "Ladies", "Refinement & Elegance", "images/lady.jpg"),
+      new(2, "Gents",  "Precision & Style",   "images/guy.jpg"),
+    };
+    }
+
+    private void OpenCategory(int categoryId)
+    {
+        // navigate to services list for the category (adjust route to your app)
+        NavigationManager.NavigateTo($"/services/{categoryId}");
+    }
+
+    private void Logout()
+    {
+        NavigationManager.NavigateTo("/", true);
+    }
+
+    private void Back()
+    {
+        NavigationManager.NavigateTo("/userdashboard", true);
+    }
+
+    private sealed record CategoryItem(int Id, string Name, string Description, string Image);
+}

@@ -1,6 +1,7 @@
 ﻿@page "/"
-@rendermode InteractiveServer
 @using MudBlazor
+@using SalonManagement.Web.Services
+@inject UserSession UserSession
 @inject NavigationManager NavigationManager
 @inject SalonManagement.Application.Interfaces.IUserService UserService
 
@@ -44,25 +45,26 @@
                           Class="styled-textfield"
                           Required RequiredError="Password is required" />
           </div>
-                    <MudButton Variant="Variant.Text"
-                               Color="Color.Primary"
-                               Style="background-color:darkgrey;border-radius:10px;color:black;"
-                               OnClick="Submit"
-                               Disabled="@isSubmitting">
-                        Submit
-                    </MudButton>
-                    <div class="signup-row"
-                         style="margin-top:12px; display:flex; align-items:baseline; gap:8px; line-height:1;">
-                        <MudText Style="margin:0; line-height:1;">Don't have an account?</MudText>
-                        <MudButton Variant="Variant.Text"
-                                   Color="Color.Primary"
-                                   OnClick="GoToSignup"
-                                   Class="signup-button"
-                                   Style="padding:0; min-width:0; height:auto; line-height:1;margin-right:46px;">
-                            Sign up
-                        </MudButton>
-                    </div>
-                </MudForm>
+
+          <MudButton Variant="Variant.Text"
+                     Color="Color.Primary"
+                     Style="background-color:darkgrey;border-radius:10px;color:black;"
+                     OnClick="@(async e => await Submit())"
+                     Disabled="@isSubmitting">
+            Submit
+          </MudButton>
+
+          <div class="signup-row" style="margin-top:12px; display:flex; align-items:baseline; gap:8px; line-height:1;">
+            <MudText Style="margin:0; line-height:1;">Don't have an account?</MudText>
+            <MudButton Variant="Variant.Text"
+                       Color="Color.Primary"
+                       OnClick="@(e => GoToSignup())"
+                       Class="signup-button"
+                       Style="padding:0; min-width:0; height:auto; line-height:1;margin-right:46px;">
+              Sign up
+            </MudButton>
+          </div>
+        </MudForm>
       </MudCardContent>
 
       <MudCardActions>
@@ -88,20 +90,16 @@
 
         try
         {
-            // 2. Ensure form is ready and validate
             if (mudForm != null)
             {
                 await mudForm.Validate();
 
                 if (mudForm.IsValid)
                 {
-                    // 3. Perform the sign-in
                     var success = await SignInAsync(credentials);
 
-
-
-                    if (success)  // FIX 1 & 2: Use the injected 'UserSession' instance and the 'authenticatedUser' variable
-
+                    if (success)
+                    {
                         if (isAdmin)
                         {
                             NavigationManager.NavigateTo("admindashboard");
@@ -109,7 +107,6 @@
                         else
                         {
                             NavigationManager.NavigateTo("userdashboard");
-
                         }
                     }
                     else
@@ -129,24 +126,26 @@
             isSubmitting = false;
         }
     }
+
     private Task GoToSignup()
     {
-        // navigate to the signup page (assumes Signup.razor is routed to "/signup")
         NavigationManager.NavigateTo("signup");
         return Task.CompletedTask;
     }
+
     private async Task<bool> SignInAsync(Credentials creds)
     {
-        // call the application-facing service (IUserService)
         var user = await UserService.AuthenticateAsync(creds.Username, creds.Password);
 
         if (user != null)
         {
-            isAdmin = user.IsAdmin; // set admin flag
-            return true;             // return true if authentication succeeded
+            isAdmin = user.IsAdmin;
+            UserSession.CurrentUser = user;
+
+            return true;
         }
 
-        return false; // return false if user is null
+        return false;
     }
 
     private class Credentials

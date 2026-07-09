@@ -2,9 +2,12 @@ using Microsoft.AspNetCore.Builder; // <-- Add this using directive
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
+using SalonManagement.Application.Interfaces;
 using SalonManagement.Infrastructure;
+using SalonManagement.Infrastructure.Repositories;
+using SalonManagement.Infrastructure.Services;
 using SalonManagement.Web.Components;
-using static SalonManagement.Web.Components.Pages.UserDashboard;
+using SalonManagement.Web.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // Register infra services (includes DbContext)
@@ -15,7 +18,8 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.AddMudServices();
 builder.Services.AddScoped<UserSession>();
-
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
 var app = builder.Build();
 
 // Seed initial admin if needed (reads config/env vars)
@@ -29,9 +33,13 @@ if (!app.Environment.IsDevelopment())
 }
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseHttpsRedirection();
-app.UseAntiforgery();
+app.UseStaticFiles();
+app.UseRouting();
 
+// Anti-forgery middleware must be registered after UseRouting and before endpoint mapping
+app.UseAntiforgery();
 app.MapStaticAssets();
+
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 

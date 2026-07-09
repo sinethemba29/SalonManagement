@@ -1,6 +1,11 @@
 ﻿@page "/userdashboard"
 @using MudBlazor
+@using SalonManagement.Web.Services
+@inject UserSession UserSession
 @inject NavigationManager NavigationManager
+@inject SalonManagement.Application.Interfaces.IUserService UserService
+@inject SalonManagement.Application.Interfaces.ICategoryService categoryService
+
 <style>
     /* Scoped styles for Categories.razor */
 
@@ -141,7 +146,7 @@
         </div>
 
         <div class="header-actions">
-            <MudText Typo="Typo.subtitle2">user</MudText>
+            <MudText Typo="Typo.subtitle2">@UserSession.CurrentUser?.Name</MudText>
             <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="@Logout">Logout</MudButton>
         </div>
     </div>
@@ -151,7 +156,7 @@
     <div class="cards-grid" role="list">
         @foreach (var cat in categories)
         {
-            <div class="category-card" role="listitem" tabindex="0" @onclick="() => OpenCategory(cat.Id)" @onkeypress="@(e => { if (e.Key == "Enter") OpenCategory(cat.Id); })">
+            <div class="category-card" role="listitem" tabindex="0" @onclick="() => OpenCategory(cat.Route)" @onkeypress="@(e => { if (e.Key == "Enter") OpenCategory(cat.Route); })">
                 <img src="@cat.Image" alt="@cat.Name" />
                 <div class="overlay">
                     <div class="overlay-title">@cat.Name</div>
@@ -166,26 +171,26 @@
     // Replace with an injected service (e.g. ICategoryService) to load real data.
     private List<CategoryItem> categories = new();
 
-    public class UserSession
-    {
-        public string Username { get; set; } = string.Empty;
-        public bool IsAdmin { get; set; }
-        // You can add more properties from your UserDto here
-    }
+    // public class UserSession
+    // {
+    //     public string Username { get; set; } = string.Empty;
+    //     public bool IsAdmin { get; set; }
+    //     // You can add more properties from your UserDto here
+    // }
     protected override void OnInitialized()
     {
         // sample images from unsplash — replace with your own /wwwroot images if desired
         categories = new List<CategoryItem>
-    {
-      new(1, "Ladies", "Refinement & Elegance", "images/lady.jpg"),
-      new(2, "Gents",  "Precision & Style",   "images/guy.jpg"),
-    };
+        {
+            new(1, "Ladies", "Refinement & Elegance", "images/lady.jpg", "/ladies"),
+            new(2, "Gents",  "Precision & Style",   "images/guy.jpg",  "/gents"),
+        };
+    
     }
 
-    private void OpenCategory(int categoryId)
+    private void OpenCategory(string route)
     {
-        // navigate to services list for the category (adjust route to your app)
-        NavigationManager.NavigateTo($"/services/{categoryId}");
+        NavigationManager.NavigateTo(route);
     }
 
     private void Logout()
@@ -193,5 +198,5 @@
         NavigationManager.NavigateTo("/", true);
     }
 
-    private sealed record CategoryItem(int Id, string Name, string Description, string Image);
+    private sealed record CategoryItem(int Id, string Name, string Description, string Image, string Route);
 }

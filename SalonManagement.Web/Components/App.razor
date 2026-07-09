@@ -19,14 +19,31 @@
 </head>
 
 <body>
-    <Routes />
-
+    <Routes @rendermode="InteractiveServer" />
     <ReconnectModal />
 
     <!-- Scripts -->
     <script src="scripts/ad-fix.js"></script>
-    <script src="_content/MudBlazor/MudBlazor.min.js"></script> <!-- MUST include MudBlazor JS -->
-    <script src="@Assets["_framework/blazor.web.js"]"></script>
+    <script src="_framework/blazor.server.js"></script>
+    <script>
+        // Diagnostic: confirm Blazor runtime loaded
+        console.log('Blazor runtime present (window.Blazor):', typeof window.Blazor !== 'undefined');
+        window.addEventListener('error', e => console.error('Unhandled JS error', e.error || e.message));
+        // Try fetching the server runtime both absolute and relative to detect hosting PathBase issues
+        (async () => {
+        const paths = ['/_framework/blazor.server.js', '_framework/blazor.server.js'];
+        for (const p of paths) {
+        try {
+        const r = await fetch(p, { method: 'GET', cache: 'no-store' });
+        console.log(`fetch ${p}:`, r.status, r.statusText);
+        }
+        catch (err) {
+        console.warn(`fetch ${p} failed:`, err);
+        }
+        }
+        })();
+    </script>
+    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
 </body>
 
 </html>
